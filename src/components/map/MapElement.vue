@@ -20,7 +20,7 @@ if (MapStatusStore.definedProtocol == false) {
   MapStatusStore.setDefinedProtocol()
 }
 
-const lineWidth = 3
+const lineWidth = 2
 
 function ScaleSpacing(width: number, zoom: number) {
   const w = Math.max(1, width)
@@ -140,7 +140,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 main,
-main > div {
+main>div {
   width: 100%;
   height: 100%;
 }

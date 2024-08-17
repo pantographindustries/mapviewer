@@ -3,6 +3,7 @@ import { lineString, multiLineString, featureCollection } from '@turf/helpers'
 import { ClipLine } from './utilities'
 import type { LineConnection, LineSegment } from './types'
 import type { Feature, LineString } from 'geojson'
+import distance from '@turf/distance'
 
 export class lineRenderer {
   LineSegments: Map<string, LineSegment> = new Map()
@@ -33,6 +34,11 @@ export class lineRenderer {
     const ColourSegmentsEndpoints = new Map()
 
     for (const [segment_id, segment] of this.LineSegments.entries()) {
+      const shouldReverseColor =
+        distance([0, 0], segment.geometry[0]) >
+        distance([0, 0], segment.geometry[segment.geometry.length - 1])
+      const colors = !shouldReverseColor ? [...segment.colors].reverse() : segment.colors
+
       const linespace = spacing * 2
       const totallines = segment.colors.length
 
@@ -40,7 +46,7 @@ export class lineRenderer {
       const line_clipped = ClipLine(line, Math.max(0.005, spacing * 5))
 
       for (let i = 0; i < totallines; i++) {
-        const color = segment.colors[i]
+        const color = colors[i]
         const lineoffset = i * linespace - ((totallines - 1) * linespace) / 2
 
         const line_clipped_offset = lineOffset(line_clipped, lineoffset)
