@@ -166,9 +166,22 @@ class LinesRendererWorker {
       const shouldReverseColor =
         distance([0, 0], segment.geometry[0]) >
         distance([0, 0], segment.geometry[segment.geometry.length - 1])
+
+      const colors_sorted_by_luminosity = segment.colors.sort((a, b) => {
+        const luminosityA =
+          0.2126 * Math.pow(parseInt(a.substring(1, 2), 16) / 255, 2.2) +
+          0.7152 * Math.pow(parseInt(a.substring(3, 2), 16) / 255, 2.2) +
+          0.0722 * Math.pow(parseInt(a.substring(5, 2), 16) / 255, 2.2)
+        const luminosityB =
+          0.2126 * Math.pow(parseInt(b.substring(1, 2), 16) / 255, 2.2) +
+          0.7152 * Math.pow(parseInt(b.substring(3, 2), 16) / 255, 2.2) +
+          0.0722 * Math.pow(parseInt(b.substring(5, 2), 16) / 255, 2.2)
+        return luminosityA - luminosityB
+      })
+
       const colors = shouldReverseColor
-        ? [...segment.colors.sort()].reverse()
-        : segment.colors.sort()
+        ? [...colors_sorted_by_luminosity].reverse()
+        : colors_sorted_by_luminosity
 
       const linespace = spacing * 2
       const totallines = segment.colors.length
