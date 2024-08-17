@@ -37,7 +37,9 @@ export class lineRenderer {
       const shouldReverseColor =
         distance([0, 0], segment.geometry[0]) >
         distance([0, 0], segment.geometry[segment.geometry.length - 1])
-      const colors = !shouldReverseColor ? [...segment.colors].reverse() : segment.colors
+      const colors = !shouldReverseColor
+        ? [...segment.colors.sort()].reverse()
+        : segment.colors.sort()
 
       const linespace = spacing * 2
       const totallines = segment.colors.length
