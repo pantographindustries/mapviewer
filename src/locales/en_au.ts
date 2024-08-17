@@ -5,7 +5,7 @@ const messages = {
     }
   },
   navigation: {
-    applicationName: 'Conductor Test Environment: Transit Network Rendering'
+    applicationName: 'CTE: Transit Network Rendering'
   }
 }
 

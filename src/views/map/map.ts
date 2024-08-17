@@ -18,7 +18,7 @@ export class ConductorMap {
     zoom_cutoff_platforms: 12,
     zoom_cutoff_platforms_marker: 14.2,
     zoom_cutoff_insignificant_locations: 12,
-    line_width: 2,
+    line_width: 2.5,
     style: window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : ('light' as 'dark' | 'light')
@@ -41,7 +41,8 @@ export class ConductorMap {
   loading = {
     loaded_cells: new Map() as Map<string, 'pending' | 'loaded' | 'failed'>,
     loaded_assets: [] as string[],
-    waiting_on_lines: false
+    waiting_on_lines: false,
+    hasLoadedStyle: false
   }
 
   stores: {
@@ -94,6 +95,9 @@ export class ConductorMap {
     this.map.on('load', async () => {
       await this.#event_load()
     })
+    this.map.on('styledata', async () => {
+      await this.#event_styledata()
+    })
     this.map.on('move', async () => {
       await this.#event_move()
     })
@@ -129,27 +133,40 @@ export class ConductorMap {
   }
 
   async #init_add_layers() {
-    this.map.addLayer({
-      id: 'LinesMap',
-      type: 'line',
-      source: 'LinesData',
-      paint: {
-        'line-color': { type: 'identity', property: 'stroke' },
-        'line-width': [
-          'interpolate',
-          ['linear'],
-          ['zoom'],
-          5,
-          0.5,
-          7,
-          1,
-          8,
-          this.config.line_width,
-          23,
-          this.config.line_width
-        ]
-      }
-    })
+    this.map.addLayer(
+      {
+        id: 'LinesMap',
+        type: 'line',
+        source: 'LinesData',
+        layout: {
+          'line-cap': 'round',
+          'line-join': 'round',
+          'line-sort-key': 1000
+        },
+        paint: {
+          'line-color': { type: 'identity', property: 'stroke' },
+          'line-width': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            5,
+            0.5,
+            7,
+            1,
+            8,
+            this.config.line_width,
+            23,
+            this.config.line_width
+          ]
+        }
+      },
+      'physical_line_waterway_label'
+    )
+  }
+
+  async #update_move_layers() {
+    console.log(this.map)
+    this.map.moveLayer('LinesMap', 'physical_line_waterway_label')
   }
 
   //MARK: Debugging
@@ -282,7 +299,6 @@ export class ConductorMap {
   }
 
   async linesrenderer_worker_message(event: { data: { type: string; data: any } }) {
-    console.log('ConductorMap.linesrenderer_worker_message', event.data, this.map)
     if (event.data.type === 'add_loading_item') {
       this.stores.ApplicationStore.add_loading_item()
     } else if (event.data.type === 'remove_loading_item') {
@@ -331,6 +347,12 @@ export class ConductorMap {
     this.stores.ApplicationStore.reset_loading_items()
 
     await this.#download_and_process_lines_data()
+
+    console.log(this.map)
+  }
+
+  async #event_styledata() {
+    console.log('ConductorMap.#event_styledata')
   }
 
   async #event_move() {
@@ -363,6 +385,7 @@ export class ConductorMap {
 
   #windowevent_change_color_scheme(event: MediaQueryListEvent) {
     this.map.setStyle(this.styles[event.matches ? 'dark' : 'light'])
+    this.#update_move_layers()
   }
 
   kill() {
