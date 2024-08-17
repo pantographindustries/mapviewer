@@ -1,132 +1,29 @@
-/* sorted A-Z */
+@import './reset.css';
+@import './tokens.css';
 
-:where(a),
-:where(abbr),
-:where(address),
-:where(area),
-:where(article),
-:where(aside),
-:where(audio),
-:where(b),
-:where(base),
-:where(bdi),
-:where(bdo),
-:where(big),
-:where(blockquote),
-:where(body),
-:where(br),
-:where(button),
-:where(caption),
-:where(cite),
-:where(code),
-:where(col),
-:where(colgroup),
-:where(data),
-:where(datalist),
-:where(dd),
-:where(del),
-:where(details),
-:where(dfn),
-:where(dialog),
-:where(div),
-:where(dl),
-:where(dt),
-:where(em),
-:where(embed),
-:where(fieldset),
-:where(figcaption),
-:where(figure),
-:where(footer),
-:where(form),
-:where(h1),
-:where(h2),
-:where(h3),
-:where(h4),
-:where(h5),
-:where(h6),
-:where(head),
-:where(header),
-:where(hgroup),
-:where(hr),
-:where(i),
-:where(input),
-:where(ins),
-:where(kbd),
-:where(keygen),
-:where(label),
-:where(legend),
-:where(li),
-:where(link),
-:where(main),
-:where(map),
-:where(mark),
-:where(menu),
-:where(menuitem),
-:where(meta),
-:where(meter),
-:where(nav),
-:where(object),
-:where(ol),
-:where(optgroup),
-:where(option),
-:where(output),
-:where(p),
-:where(param),
-:where(picture),
-:where(pre),
-:where(progress),
-:where(q),
-:where(rp),
-:where(rt),
-:where(ruby),
-:where(s),
-:where(samp),
-:where(script),
-:where(section),
-:where(select),
-:where(slot),
-:where(small),
-:where(source),
-:where(span),
-:where(strong),
-:where(style),
-:where(sub),
-:where(summary),
-:where(sup),
-:where(table),
-:where(tbody),
-:where(td),
-:where(template),
-:where(textarea),
-:where(tfoot),
-:where(th),
-:where(thead),
-:where(time),
-:where(title),
-:where(tr),
-:where(track),
-:where(u),
-:where(ul),
-:where(var),
-:where(wbr) {
-  all: unset;
-  display: revert;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-:root,
+:root {
+  --DSS-ApplicationHeader-Height: 60px;
+  --PTM-StopListRow-PaddingBottomAlign: 3px;
+}
+
 body {
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    'Open Sans',
-    'Helvetica Neue',
-    sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
+  font-family: 'Inter Variable', sans-serif;
+}
+
+html,
+body,
+#app {
+  margin: 0px;
+  width: 100%;
+  min-height: 100%;
+  height: 100%;
+  max-height: 100vh;
+  background: var(--DSC-Surfaces-Background, #fff);
+  font-variant-numeric: tabular-nums;
 }

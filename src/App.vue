@@ -1,36 +1,17 @@
 <script setup lang="ts">
-import MapElement from './components/map/MapElement.vue'
-import MapStatus from './components/map/MapStatus.vue'
-import { useMapLinesStore } from './stores/maplines'
+import { RouterView } from 'vue-router'
 
-import { onMounted } from 'vue'
+import { useApplicationStateStore } from './stores/ApplicationState';
+import LoadingOverlay from './views/overlays/LoadingOverlay.vue';
+import DSSApplicationHeader from './components/DS/Sections/DSS-ApplicationHeader.vue';
 
-const MapLinesStore = useMapLinesStore()
-onMounted(() => {
-  console.log('App: App.vue mounted')
-  MapLinesStore.loadTopoJSON()
-})
+const ApplicationState = useApplicationStateStore();
+
+ApplicationState.bootstrap();
 </script>
 
 <template>
-  <div class="mapstat">
-    <MapStatus />
-  </div>
-  <div class="mapel">
-    <MapElement />
-  </div>
+  <LoadingOverlay v-if="!ApplicationState.app_loaded" />
+  <DSSApplicationHeader />
+  <RouterView />
 </template>
-
-<style scoped>
-.mapstat {
-  position: absolute;
-  bottom: 40px;
-  right: 10px;
-  z-index: 1000;
-}
-
-.mapel {
-  width: 100vw;
-  height: 100vh;
-}
-</style>
