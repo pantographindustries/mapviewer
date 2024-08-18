@@ -157,6 +157,7 @@ class LinesRendererWorker {
   }
 
   renderLines(RequestedSpacing: number) {
+    this.#add_loading_item()
     const spacing = Math.max(0.00005, Math.min(0.3, RequestedSpacing))
 
     const RenderedColourLine = new Map()
@@ -237,6 +238,7 @@ class LinesRendererWorker {
       )
     }
 
+    this.#remove_loading_item()
     return featureCollection(rendered)
   }
 
