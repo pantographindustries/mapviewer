@@ -18,7 +18,7 @@ export class ConductorMap {
     zoom_cutoff_platforms: 12,
     zoom_cutoff_platforms_marker: 14.2,
     zoom_cutoff_insignificant_locations: 12,
-    line_width: 2.5,
+    line_width: 3,
     style: window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : ('light' as 'dark' | 'light')
@@ -55,7 +55,7 @@ export class ConductorMap {
 
   //MARK: Constructor
   constructor(el: HTMLDivElement) {
-    console.log('ConductorMap')
+    //console.log('ConductorMap')
 
     const protocol = new PmTilesProtocol()
     addProtocol('pmtiles', protocol.tile)
@@ -159,13 +159,13 @@ export class ConductorMap {
             this.config.line_width
           ]
         }
-      },
-      'physical_line_waterway_label'
+      }
+      //'physical_line_waterway_label'
     )
   }
 
   async #update_move_layers() {
-    console.log(this.map)
+    //console.log(this.map)
     this.map.moveLayer('LinesMap', 'physical_line_waterway_label')
   }
 
@@ -318,7 +318,8 @@ export class ConductorMap {
       type: 'request_render',
       data: {
         width: this.config.line_width,
-        zoom: this.current.zoom
+        zoom: this.current.zoom,
+        viewbox: this.current.bounds_polygon
       }
     })
   }
@@ -348,11 +349,11 @@ export class ConductorMap {
 
     await this.#download_and_process_lines_data()
 
-    console.log(this.map)
+    //console.log(this.map)
   }
 
   async #event_styledata() {
-    console.log('ConductorMap.#event_styledata')
+    //console.log('ConductorMap.#event_styledata')
   }
 
   async #event_move() {
@@ -366,7 +367,7 @@ export class ConductorMap {
   }
 
   async #event_style_image_missing() {
-    console.log('ConductorMap.#event_style_image_missing')
+    // console.log('ConductorMap.#event_style_image_missing')
   }
 
   async #event_dataloading() {
@@ -389,7 +390,7 @@ export class ConductorMap {
   }
 
   kill() {
-    console.log('ConductorMap.kill')
+    // console.log('ConductorMap.kill')
     this.workers.linesrenderer.terminate()
     this.map.remove()
   }

@@ -1,9 +1,11 @@
-import type { Feature, LineString } from 'geojson'
+import type { Feature, LineString, Position } from 'geojson'
 import length from '@turf/length'
 import lineSliceAlong from '@turf/line-slice-along'
 import lineOffset from '@turf/line-offset'
-import { lineString, multiLineString, featureCollection } from '@turf/helpers'
+import { lineString, multiLineString, featureCollection, polygon } from '@turf/helpers'
 import distance from '@turf/distance'
+import booleanIntersects from '@turf/boolean-intersects'
+import smooth from 'to-smooth'
 
 type coordpair = [number, number]
 
@@ -98,6 +100,17 @@ export function CompareCoords(c1: coordpair, c2: coordpair): boolean {
   return c1[0] == c2[0] && c1[1] == c2[1]
 }
 
+function ProcessOffsetLines(
+  lineString: Feature<LineString>,
+  flags_should_smooth: boolean
+): Position[] {
+  if (flags_should_smooth) {
+    return smooth(lineString.geometry.coordinates, { iteration: 2 })
+  } else {
+    return lineString.geometry.coordinates
+  }
+}
+
 export function ClipLine(line: Feature<LineString>, clipdist: number): Feature<LineString> {
   const LineLength = length(line)
   const MinLineLength = LineLength / 3
@@ -156,14 +169,34 @@ class LinesRendererWorker {
     this.#remove_loading_item()
   }
 
-  renderLines(RequestedSpacing: number) {
+  renderLines(RequestedSpacing: number, viewbox: number[][]) {
     this.#add_loading_item()
+
+    const time_start = performance.now()
+
     const spacing = Math.max(0.00005, Math.min(0.3, RequestedSpacing))
 
     const RenderedColourLine = new Map()
     const ColourSegmentsEndpoints = new Map()
 
+    const viewport = polygon([viewbox])
+
+    let r_segs_dbg = 0,
+      s_segs_dbg = 0
+
+    const flags_should_smooth = spacing < 0.007,
+      flags_should_smooth_coords = spacing < 0.11
+
     for (const [segment_id, segment] of this.LineSegments.entries()) {
+      const line = lineString(segment.geometry) as Feature<LineString>
+
+      if (!booleanIntersects(viewport, line)) {
+        s_segs_dbg++
+        continue
+      } else {
+        r_segs_dbg++
+      }
+
       const shouldReverseColor =
         distance([0, 0], segment.geometry[0]) >
         distance([0, 0], segment.geometry[segment.geometry.length - 1])
@@ -187,21 +220,54 @@ class LinesRendererWorker {
       const linespace = spacing * 2
       const totallines = segment.colors.length
 
-      const line = lineString(segment.geometry) as Feature<LineString>
-      const line_clipped = ClipLine(line, Math.max(0.005, spacing * 5))
+      const line_clipped = ClipLine(line, Math.max(0.0049, spacing * 5) * 6)
 
       for (let i = 0; i < totallines; i++) {
         const color = colors[i]
+
         const lineoffset = i * linespace - ((totallines - 1) * linespace) / 2
 
         const line_clipped_offset = lineOffset(line_clipped, lineoffset)
 
-        const line_processed = line_clipped_offset.geometry.coordinates
+        const line_clipped_ofset_buffer = ClipLine(
+          line_clipped_offset,
+          Math.max(0.049, spacing * 5) * 2
+        )
+        const line_clipped_ofset_invasive = ClipLine(
+          line_clipped_ofset_buffer,
+          Math.max(0.049, spacing * 5) * 2
+        )
+
+        const line_processed = ProcessOffsetLines(line_clipped_ofset_invasive, flags_should_smooth)
 
         ColourSegmentsEndpoints.set(`${segment_id}:${color}:top`, line_processed[0])
+
+        ColourSegmentsEndpoints.set(
+          `${segment_id}:${color}:top:invasive`,
+          line_clipped_offset.geometry.coordinates[0]
+        )
+        ColourSegmentsEndpoints.set(
+          `${segment_id}:${color}:top:buffer`,
+          line_clipped_ofset_buffer.geometry.coordinates[0]
+        )
+
         ColourSegmentsEndpoints.set(
           `${segment_id}:${color}:bottom`,
           line_processed[line_processed.length - 1]
+        )
+
+        ColourSegmentsEndpoints.set(
+          `${segment_id}:${color}:bottom:invasive`,
+          line_clipped_offset.geometry.coordinates[
+            line_clipped_offset.geometry.coordinates.length - 1
+          ]
+        )
+
+        ColourSegmentsEndpoints.set(
+          `${segment_id}:${color}:bottom:buffer`,
+          line_clipped_ofset_buffer.geometry.coordinates[
+            line_clipped_ofset_buffer.geometry.coordinates.length - 1
+          ]
         )
 
         if (RenderedColourLine.has(color)) {
@@ -218,12 +284,29 @@ class LinesRendererWorker {
           `Segment:${connection.from[0]}:${connection.color}:${connection.from[1]}`
         ),
         ColourSegmentsEndpoints.get(
+          `Segment:${connection.from[0]}:${connection.color}:${connection.from[1]}:buffer`
+        ),
+        ColourSegmentsEndpoints.get(
+          `Segment:${connection.from[0]}:${connection.color}:${connection.from[1]}:invasive`
+        ),
+        //ColourSegmentsEndpoints.get(
+        //  `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}:actual`
+        //),
+        ColourSegmentsEndpoints.get(
+          `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}:invasive`
+        ),
+        ColourSegmentsEndpoints.get(
+          `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}:buffer`
+        ),
+        ColourSegmentsEndpoints.get(
           `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}`
         )
       ]
 
       if (!coords.includes(undefined)) {
-        RenderedColourLine.get(connection.color).push(coords)
+        RenderedColourLine.get(connection.color).push(
+          flags_should_smooth_coords ? smooth(coords, { iteration: 7, factor: 0.75 }) : coords
+        )
       }
     }
 
@@ -239,6 +322,22 @@ class LinesRendererWorker {
     }
 
     this.#remove_loading_item()
+
+    const time_end = performance.now()
+
+    /*console.log(
+      'rendered',
+      Math.round(time_end - time_start) + 'ms',
+      'r_segs_dbg',
+      r_segs_dbg,
+      's_segs_dbg',
+      s_segs_dbg,
+      'scale',
+      spacing,
+      'smoothing',
+      flags_should_smooth
+    )*/
+
     return featureCollection(rendered)
   }
 
@@ -247,9 +346,9 @@ class LinesRendererWorker {
     postMessage({ type: 'finished_init' })
   }
 
-  message_request_render(line_width: number, zoom: number) {
+  message_request_render(line_width: number, zoom: number, viewbox: number[][]) {
     const spacing = ScaleSpacing(line_width, zoom)
-    const rendered = this.renderLines(spacing)
+    const rendered = this.renderLines(spacing, viewbox)
     postMessage({ type: 'rendered', data: rendered })
   }
 }
@@ -260,6 +359,10 @@ addEventListener('message', (event: { data: { type: string; data: any } }) => {
   if (event.data.type === 'init') {
     worker.message_init(event.data.data)
   } else if (event.data.type === 'request_render') {
-    worker.message_request_render(event.data.data.width, event.data.data.zoom)
+    worker.message_request_render(
+      event.data.data.width,
+      event.data.data.zoom,
+      event.data.data.viewbox
+    )
   }
 })
