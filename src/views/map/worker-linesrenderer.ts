@@ -105,7 +105,7 @@ function ProcessOffsetLines(
   flags_should_smooth: boolean
 ): Position[] {
   if (flags_should_smooth) {
-    return smooth(lineString.geometry.coordinates, { iteration: 2 })
+    return smooth(lineString.geometry.coordinates, { iteration: 2, factor: 0.75 })
   } else {
     return lineString.geometry.coordinates
   }
@@ -179,6 +179,8 @@ class LinesRendererWorker {
     const RenderedColourLine = new Map()
     const ColourSegmentsEndpoints = new Map()
 
+    const shouldSortColors = true
+
     const viewport = polygon([viewbox])
 
     let r_segs_dbg = 0,
@@ -213,9 +215,11 @@ class LinesRendererWorker {
         return luminosityA - luminosityB
       })
 
-      const colors = shouldReverseColor
+      const colors_sorted = shouldReverseColor
         ? [...colors_sorted_by_luminosity].reverse()
         : colors_sorted_by_luminosity
+
+      const colors = shouldSortColors ? colors_sorted : segment.colors
 
       const linespace = spacing * 2
       const totallines = segment.colors.length
