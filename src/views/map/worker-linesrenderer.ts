@@ -243,7 +243,7 @@ class LinesRendererWorker {
       const linespace = spacing * 2
       const totallines = segment.colors.length
 
-      const line_clipped = ClipLine(line, Math.max(0.0049, spacing * 5) * 6)[1]
+      const line_clipped = ClipLine(line, Math.max(0.0049, spacing * 5) * 2)[1]
 
       for (let i = 0; i < totallines; i++) {
         const color = colors[i]
@@ -252,25 +252,15 @@ class LinesRendererWorker {
 
         const line_clipped_offset = lineOffset(line_clipped, lineoffset)
 
-        const offset_clipped = ClipLine(line_clipped_offset, Math.max(0.0049, spacing * 5) * 6)
+        const offset_clipped = ClipLine(line_clipped_offset, Math.max(0.0049, spacing * 5) * 3)
 
         const line_processed = ProcessOffsetLines(offset_clipped[1], flags_should_smooth)
 
         console.log(offset_clipped)
 
         ColourSegmentsEndpoints.set(
-          `${segment_id}:${color}:top`,
-          offset_clipped[0].geometry.coordinates[0]
-        )
-
-        ColourSegmentsEndpoints.set(
           `${segment_id}:${color}:top:buffer`,
           offset_clipped[0].geometry.coordinates
-        )
-
-        ColourSegmentsEndpoints.set(
-          `${segment_id}:${color}:bottom`,
-          offset_clipped[2].geometry.coordinates[offset_clipped[2].geometry.coordinates.length - 1]
         )
 
         ColourSegmentsEndpoints.set(
