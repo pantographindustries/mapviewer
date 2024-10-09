@@ -33,9 +33,9 @@ console.group('Conductor')
 console.log('By Electronic Mobility Co - Jayden Sim')
 console.log(
   'Release:',
-  (import.meta.env['CF_PAGES_COMMIT_SHA'] || 'dev') +
+  (import.meta.env.CF_PAGES_COMMIT_SHA || 'dev') +
     ' on branch ' +
-    (import.meta.env['CF_PAGES_BRANCH'] || 'dev')
+    (import.meta.env.CF_PAGES_BRANCH || 'dev')
 )
 console.log("You're cool. Thanks for checking this out :)")
 console.groupEnd()
