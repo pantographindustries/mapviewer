@@ -6,13 +6,14 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    vue(),
-    vueDevTools(),
-  ],
+  plugins: [vue(), vueDevTools()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  define: {
+    'import.meta.env.CF_PAGES_COMMIT_SHA': process.env.CF_PAGES_COMMIT_SHA,
+    'import.meta.env.CF_PAGES_BRANCH': process.env.CF_PAGES_BRANCH
   }
 })
