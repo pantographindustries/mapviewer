@@ -287,40 +287,6 @@ class LinesRendererWorker {
     }
 
     for (const connection of this.LineConnections) {
-      const TopBufferBit = [
-        /* 
-        ColourSegmentsEndpoints.get(
-          `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}`
-        ), */
-        ...(connection.to[1] == 'top'
-          ? ColourSegmentsEndpoints.get(
-              `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}:buffer`
-            ) || []
-          : (
-              ColourSegmentsEndpoints.get(
-                `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}:buffer`
-              ) || []
-            )
-              .slice()
-              .reverse())
-      ]
-
-      const BottomBufferBit = [
-        ...(connection.from[1] == 'bottom'
-          ? ColourSegmentsEndpoints.get(
-              `Segment:${connection.from[0]}:${connection.color}:${connection.from[1]}:buffer`
-            ) || []
-          : (
-              ColourSegmentsEndpoints.get(
-                `Segment:${connection.from[0]}:${connection.color}:${connection.from[1]}:buffer`
-              ) || []
-            )
-              .slice()
-              .reverse())
-      ]
-
-      console.log(connection.to[1], TopBufferBit, connection.from[1], BottomBufferBit)
-
       const coords = [
         ...(connection.from[1] == 'bottom'
           ? ColourSegmentsEndpoints.get(
