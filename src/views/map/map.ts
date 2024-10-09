@@ -25,8 +25,8 @@ export class ConductorMap {
   }
 
   styles = {
-    light: 'https://api.protomaps.com/styles/v2/light.json?key=a1fff39c9193ecc9',
-    dark: 'https://api.protomaps.com/styles/v2/dark.json?key=a1fff39c9193ecc9'
+    light: 'https://api.protomaps.com/styles/v2/white.json?key=a1fff39c9193ecc9',
+    dark: 'https://api.protomaps.com/styles/v2/black.json?key=a1fff39c9193ecc9'
   }
 
   current: {
