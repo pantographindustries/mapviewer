@@ -113,10 +113,10 @@ function ProcessOffsetLines(
 
 export function ClipLine(line: Feature<LineString>, clipdist: number): Feature<LineString> {
   const LineLength = length(line)
-  const MinLineLength = LineLength / 3
+  const MinLineLength = LineLength / 2
 
   // Throw line when we try clip a line that's smaller than a third of the distance asked OR has fewer than 4 coordinates.
-  if (MinLineLength <= clipdist || line.geometry.coordinates.length < 4) {
+  if (MinLineLength <= clipdist || line.geometry.coordinates.length < 3) {
     return line
   }
 
