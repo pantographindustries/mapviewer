@@ -256,8 +256,6 @@ class LinesRendererWorker {
 
         const line_processed = ProcessOffsetLines(offset_clipped[1], flags_should_smooth)
 
-        console.log(offset_clipped)
-
         ColourSegmentsEndpoints.set(
           `${segment_id}:${color}:top:buffer`,
           offset_clipped[0].geometry.coordinates
