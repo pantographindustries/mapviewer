@@ -111,20 +111,39 @@ function ProcessOffsetLines(
   }
 }
 
-export function ClipLine(line: Feature<LineString>, clipdist: number): Feature<LineString> {
+export function ClipLine(
+  line: Feature<LineString>,
+  clipdist: number
+): [Feature<LineString>, Feature<LineString>, Feature<LineString>] {
   const LineLength = length(line)
-  const MinLineLength = LineLength / 2
+  const MinLineLength = LineLength / 3
 
-  // Throw line when we try clip a line that's smaller than a third of the distance asked OR has fewer than 4 coordinates.
-  if (MinLineLength <= clipdist || line.geometry.coordinates.length < 3) {
-    return line
+  /*
+  // Throw line when we try clip a line that has fewer than 3 coordinates.
+  if (line.geometry.coordinates.length < 3) {
+    lineToUse = cleanCoords(
+      lineString(
+        lineChunk(line, LineLength / 4)
+          .features.map((c) => c.geometry.coordinates)
+          .flat()
+      )
+    )
+  }*/
+
+  let useMinLength = false
+  if (MinLineLength <= clipdist) {
+    useMinLength = true
   }
 
-  const StartDistance = Math.min(MinLineLength, clipdist)
-  const EndDistance = Math.max(MinLineLength * 2, LineLength - clipdist)
+  const actualClipDist = useMinLength ? MinLineLength * 0.9 : clipdist
+
+  const StartDistance = Math.min(MinLineLength, actualClipDist)
+  const EndDistance = Math.max(MinLineLength * 2, LineLength - actualClipDist)
 
   const SlicedLine = lineSliceAlong(line, StartDistance, EndDistance)
-  return SlicedLine
+  const StartSlicedLine = lineSliceAlong(line, 0, StartDistance)
+  const EndSlicedLine = lineSliceAlong(line, EndDistance, LineLength)
+  return [StartSlicedLine, SlicedLine, EndSlicedLine]
 }
 
 function ScaleSpacing(width: number, zoom: number) {
@@ -224,7 +243,7 @@ class LinesRendererWorker {
       const linespace = spacing * 2
       const totallines = segment.colors.length
 
-      const line_clipped = ClipLine(line, Math.max(0.0049, spacing * 5) * 6)
+      const line_clipped = ClipLine(line, Math.max(0.0049, spacing * 5) * 6)[1]
 
       for (let i = 0; i < totallines; i++) {
         const color = colors[i]
@@ -233,45 +252,30 @@ class LinesRendererWorker {
 
         const line_clipped_offset = lineOffset(line_clipped, lineoffset)
 
-        const line_clipped_ofset_buffer = ClipLine(
-          line_clipped_offset,
-          Math.max(0.049, spacing * 5) * 2
-        )
-        const line_clipped_ofset_invasive = ClipLine(
-          line_clipped_ofset_buffer,
-          Math.max(0.049, spacing * 5) * 2
-        )
+        const offset_clipped = ClipLine(line_clipped_offset, Math.max(0.0049, spacing * 5) * 6)
 
-        const line_processed = ProcessOffsetLines(line_clipped_ofset_invasive, flags_should_smooth)
+        const line_processed = ProcessOffsetLines(offset_clipped[1], flags_should_smooth)
 
-        ColourSegmentsEndpoints.set(`${segment_id}:${color}:top`, line_processed[0])
+        console.log(offset_clipped)
 
         ColourSegmentsEndpoints.set(
-          `${segment_id}:${color}:top:invasive`,
-          line_clipped_offset.geometry.coordinates[0]
+          `${segment_id}:${color}:top`,
+          offset_clipped[0].geometry.coordinates[0]
         )
+
         ColourSegmentsEndpoints.set(
           `${segment_id}:${color}:top:buffer`,
-          line_clipped_ofset_buffer.geometry.coordinates[0]
+          offset_clipped[0].geometry.coordinates
         )
 
         ColourSegmentsEndpoints.set(
           `${segment_id}:${color}:bottom`,
-          line_processed[line_processed.length - 1]
-        )
-
-        ColourSegmentsEndpoints.set(
-          `${segment_id}:${color}:bottom:invasive`,
-          line_clipped_offset.geometry.coordinates[
-            line_clipped_offset.geometry.coordinates.length - 1
-          ]
+          offset_clipped[2].geometry.coordinates[offset_clipped[2].geometry.coordinates.length - 1]
         )
 
         ColourSegmentsEndpoints.set(
           `${segment_id}:${color}:bottom:buffer`,
-          line_clipped_ofset_buffer.geometry.coordinates[
-            line_clipped_ofset_buffer.geometry.coordinates.length - 1
-          ]
+          offset_clipped[2].geometry.coordinates
         )
 
         if (RenderedColourLine.has(color)) {
@@ -283,34 +287,75 @@ class LinesRendererWorker {
     }
 
     for (const connection of this.LineConnections) {
-      const coords = [
-        ColourSegmentsEndpoints.get(
-          `Segment:${connection.from[0]}:${connection.color}:${connection.from[1]}`
-        ),
-        ColourSegmentsEndpoints.get(
-          `Segment:${connection.from[0]}:${connection.color}:${connection.from[1]}:buffer`
-        ),
-        ColourSegmentsEndpoints.get(
-          `Segment:${connection.from[0]}:${connection.color}:${connection.from[1]}:invasive`
-        ),
-        //ColourSegmentsEndpoints.get(
-        //  `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}:actual`
-        //),
-        ColourSegmentsEndpoints.get(
-          `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}:invasive`
-        ),
-        ColourSegmentsEndpoints.get(
-          `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}:buffer`
-        ),
+      const TopBufferBit = [
+        /* 
         ColourSegmentsEndpoints.get(
           `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}`
-        )
+        ), */
+        ...(connection.to[1] == 'top'
+          ? ColourSegmentsEndpoints.get(
+              `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}:buffer`
+            ) || []
+          : (
+              ColourSegmentsEndpoints.get(
+                `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}:buffer`
+              ) || []
+            )
+              .slice()
+              .reverse())
+      ]
+
+      const BottomBufferBit = [
+        ...(connection.from[1] == 'bottom'
+          ? ColourSegmentsEndpoints.get(
+              `Segment:${connection.from[0]}:${connection.color}:${connection.from[1]}:buffer`
+            ) || []
+          : (
+              ColourSegmentsEndpoints.get(
+                `Segment:${connection.from[0]}:${connection.color}:${connection.from[1]}:buffer`
+              ) || []
+            )
+              .slice()
+              .reverse())
+      ]
+
+      console.log(connection.to[1], TopBufferBit, connection.from[1], BottomBufferBit)
+
+      const coords = [
+        ...(connection.from[1] == 'bottom'
+          ? ColourSegmentsEndpoints.get(
+              `Segment:${connection.from[0]}:${connection.color}:${connection.from[1]}:buffer`
+            ) || []
+          : (
+              ColourSegmentsEndpoints.get(
+                `Segment:${connection.from[0]}:${connection.color}:${connection.from[1]}:buffer`
+              ) || []
+            )
+              .slice()
+              .reverse()),
+        ...(connection.to[1] == 'top'
+          ? ColourSegmentsEndpoints.get(
+              `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}:buffer`
+            ) || []
+          : (
+              ColourSegmentsEndpoints.get(
+                `Segment:${connection.to[0]}:${connection.color}:${connection.to[1]}:buffer`
+              ) || []
+            )
+              .slice()
+              .reverse())
       ]
 
       if (!coords.includes(undefined)) {
-        RenderedColourLine.get(connection.color).push(
-          flags_should_smooth_coords ? smooth(coords, { iteration: 7, factor: 0.75 }) : coords
-        )
+        const ln = flags_should_smooth_coords
+          ? smooth(coords, { iteration: 7, factor: 0.75 })
+          : coords
+
+        if (RenderedColourLine.has(connection.color)) {
+          RenderedColourLine.get(connection.color).push(ln)
+        } else {
+          RenderedColourLine.set(connection.color, [ln])
+        }
       }
     }
 
