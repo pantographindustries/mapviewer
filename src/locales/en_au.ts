@@ -5,7 +5,7 @@ const messages = {
     }
   },
   navigation: {
-    applicationName: 'CTE: Transit Network Rendering'
+    applicationName: 'Transit Network Schematic Rendering'
   }
 }
 
