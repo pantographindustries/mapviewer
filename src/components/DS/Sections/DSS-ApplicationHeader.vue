@@ -33,15 +33,15 @@ const should_show_loader = computed(() => isLoading.value > 0);
 </script>
 
 <template>
-  <div class="gradient-blur">
-    <div></div>
-    <div></div>
-    <div></div>
-    <div></div>
-    <div></div>
-    <div></div>
-  </div>
   <section>
+    <div class="scrim">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
     <DSTApplicationName>{{ t("navigation.applicationName") }}</DSTApplicationName>
     <DSIIcon icon="Loader" v-if="should_show_loader" />
   </section>
@@ -89,7 +89,7 @@ section:after {
 }
 
 
-.gradient-blur {
+.scrim {
   position: fixed;
   z-index: 1;
   inset: auto 0 0 0;
@@ -99,14 +99,14 @@ section:after {
   top: 0px;
 }
 
-.gradient-blur>div,
-.gradient-blur::before,
-.gradient-blur::after {
+.scrim>div,
+.scrim::before,
+.scrim::after {
   position: absolute;
   inset: 0;
 }
 
-.gradient-blur::before {
+.scrim::before {
   content: "";
   z-index: 1;
   backdrop-filter: blur(0.5px);
@@ -117,7 +117,7 @@ section:after {
       rgba(0, 0, 0, 0) 37.5%);
 }
 
-.gradient-blur>div:nth-of-type(1) {
+.scrim>div:nth-of-type(1) {
   z-index: 2;
   backdrop-filter: blur(1px);
   mask: linear-gradient(to bottom,
@@ -127,7 +127,7 @@ section:after {
       rgba(0, 0, 0, 0) 50%);
 }
 
-.gradient-blur>div:nth-of-type(2) {
+.scrim>div:nth-of-type(2) {
   z-index: 3;
   backdrop-filter: blur(2px);
   mask: linear-gradient(to bottom,
@@ -137,7 +137,7 @@ section:after {
       rgba(0, 0, 0, 0) 62.5%);
 }
 
-.gradient-blur>div:nth-of-type(3) {
+.scrim>div:nth-of-type(3) {
   z-index: 4;
   backdrop-filter: blur(4px);
   mask: linear-gradient(to bottom,
@@ -147,7 +147,7 @@ section:after {
       rgba(0, 0, 0, 0) 75%);
 }
 
-.gradient-blur>div:nth-of-type(4) {
+.scrim>div:nth-of-type(4) {
   z-index: 5;
   backdrop-filter: blur(8px);
   mask: linear-gradient(to bottom,
@@ -157,7 +157,7 @@ section:after {
       rgba(0, 0, 0, 0) 87.5%);
 }
 
-.gradient-blur>div:nth-of-type(5) {
+.scrim>div:nth-of-type(5) {
   z-index: 6;
   backdrop-filter: blur(16px);
   mask: linear-gradient(to bottom,
@@ -167,7 +167,7 @@ section:after {
       rgba(0, 0, 0, 0) 100%);
 }
 
-.gradient-blur>div:nth-of-type(6) {
+.scrim>div:nth-of-type(6) {
   z-index: 7;
   backdrop-filter: blur(32px);
   mask: linear-gradient(to bottom,
@@ -176,7 +176,7 @@ section:after {
       rgba(0, 0, 0, 1) 100%);
 }
 
-.gradient-blur::after {
+.scrim::after {
   content: "";
   z-index: 8;
   backdrop-filter: blur(64px);
