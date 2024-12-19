@@ -91,7 +91,7 @@ section:after {
 
 .scrim {
   position: fixed;
-  z-index: 1;
+  z-index: -1;
   inset: auto 0 0 0;
   height: var(--DSS-ApplicationHeader-Height);
   pointer-events: none;
