@@ -2,10 +2,19 @@ import type { Feature, LineString, Position } from 'geojson'
 import length from '@turf/length'
 import lineSliceAlong from '@turf/line-slice-along'
 import lineOffset from '@turf/line-offset'
+import lineChunk from '@turf/line-chunk'
 import { lineString, multiLineString, featureCollection, polygon } from '@turf/helpers'
 import distance from '@turf/distance'
 import booleanIntersects from '@turf/boolean-intersects'
 import smooth from 'to-smooth'
+import CheapRuler from 'cheap-ruler'
+import cleanCoords from '@turf/clean-coords'
+import { simplify } from '@turf/simplify'
+
+import RandomGithubOffsetFunction from './random_shit_i_found_on_github_issues.js'
+
+const DEBUG = false
+const DO_VIEWPORT_CHECK = false
 
 type coordpair = [number, number]
 
@@ -38,6 +47,34 @@ type LineSegment = {
 }
 
 type LineConnection = { from: [number, string]; to: [number, string]; color: string }
+
+const ruler = new CheapRuler(-35, 'kilometers')
+
+function FixLineCoords(line: Feature<LineString>): Feature<LineString> {
+  return cleanCoords(lineString(FixCoords(line.geometry.coordinates)))
+}
+
+function TestCoord(coordNumber: number): boolean {
+  return (
+    coordNumber == null ||
+    isNaN(coordNumber) ||
+    !isFinite(coordNumber) ||
+    coordNumber == 0 ||
+    coordNumber == undefined
+  )
+}
+
+function FixCoords(coordsInput: Position[]) {
+  const coords: Position[] = []
+
+  for (const coord of coordsInput) {
+    if (TestCoord(coord[0]) || TestCoord(coord[1])) {
+      continue
+    }
+    coords.push([coord[0], coord[1]] as Position)
+  }
+  return coords
+}
 
 function extractLineConnections(TopoJsonLines: topojsonExport): Array<LineConnection> {
   const Connections: { from: [number, string]; to: [number, string]; color: string }[] = []
@@ -85,8 +122,16 @@ function ExtractLineSegments(
       })
     )
 
+    const smoothing_coords_from_init = false
+    //    console.log('Smoothing segment', i)
+
+    const geom_unsimplified = smoothing_coords_from_init
+      ? smooth(TopoJsonLines.arcs[i], { iteration: 2, factor: 0.7 })
+      : TopoJsonLines.arcs[i]
+
     Segments.set(`Segment:${i}`, {
-      geometry: TopoJsonLines.arcs[i],
+      geometry: simplify(lineString(geom_unsimplified), { tolerance: 0.0001, highQuality: true })
+        .geometry.coordinates,
       top: TopoJsonLines.arcs[i][0],
       bottom: TopoJsonLines.arcs[i][TopoJsonLines.arcs[i].length - 1],
       colors: [...colorsInSegment].filter((e) => e != null)
@@ -105,7 +150,7 @@ function ProcessOffsetLines(
   flags_should_smooth: boolean
 ): Position[] {
   if (flags_should_smooth) {
-    return smooth(lineString.geometry.coordinates, { iteration: 2, factor: 0.75 })
+    return smooth(lineString.geometry.coordinates, { iteration: 3, factor: 0.75 })
   } else {
     return lineString.geometry.coordinates
   }
@@ -115,20 +160,22 @@ export function ClipLine(
   line: Feature<LineString>,
   clipdist: number
 ): [Feature<LineString>, Feature<LineString>, Feature<LineString>] {
-  const LineLength = length(line)
-  const MinLineLength = LineLength / 3
+  const LineLength = ruler.lineDistance(
+    FixLineCoords(line).geometry.coordinates as [number, number][]
+  )
+
+  const MinLineLength = !isNaN(LineLength) ? LineLength / 3 : 0.001
 
   /*
   // Throw line when we try clip a line that has fewer than 3 coordinates.
-  if (line.geometry.coordinates.length < 3) {
-    lineToUse = cleanCoords(
-      lineString(
-        lineChunk(line, LineLength / 4)
-          .features.map((c) => c.geometry.coordinates)
-          .flat()
-      )
+  if (line.geometry.coordinates.length < 4) {
+    line = lineString(
+      lineChunk(line, LineLength / 6)
+        .features.map((c) => c.geometry.coordinates)
+        .flat()
     )
-  }*/
+  }
+*/
 
   let useMinLength = false
   if (MinLineLength <= clipdist) {
@@ -192,6 +239,7 @@ class LinesRendererWorker {
     this.#add_loading_item()
 
     const time_start = performance.now()
+    let segments_rendered: number = 0
 
     const spacing = Math.max(0.00005, Math.min(0.3, RequestedSpacing))
 
@@ -206,12 +254,12 @@ class LinesRendererWorker {
       s_segs_dbg = 0
 
     const flags_should_smooth = spacing < 0.007,
-      flags_should_smooth_coords = spacing < 0.11
+      flags_should_smooth_coords = false //spacing < 0.11
 
     for (const [segment_id, segment] of this.LineSegments.entries()) {
       const line = lineString(segment.geometry) as Feature<LineString>
 
-      if (!booleanIntersects(viewport, line)) {
+      if (DO_VIEWPORT_CHECK ? !booleanIntersects(viewport, line) : false) {
         s_segs_dbg++
         continue
       } else {
@@ -250,11 +298,15 @@ class LinesRendererWorker {
 
         const lineoffset = i * linespace - ((totallines - 1) * linespace) / 2
 
-        const line_clipped_offset = lineOffset(line_clipped, lineoffset)
+        const line_clipped_offset = lineString(
+          RandomGithubOffsetFunction(line_clipped.geometry.coordinates, lineoffset / 100)
+        )
 
         const offset_clipped = ClipLine(line_clipped_offset, Math.max(0.0049, spacing * 5) * 3)
 
         const line_processed = ProcessOffsetLines(offset_clipped[1], flags_should_smooth)
+
+        segments_rendered++
 
         ColourSegmentsEndpoints.set(
           `${segment_id}:${color}:top:buffer`,
@@ -267,9 +319,9 @@ class LinesRendererWorker {
         )
 
         if (RenderedColourLine.has(color)) {
-          RenderedColourLine.get(color).push(line_processed)
+          RenderedColourLine.get(color).push(FixCoords(line_processed))
         } else {
-          RenderedColourLine.set(color, [line_processed])
+          RenderedColourLine.set(color, [FixCoords(line_processed)])
         }
       }
     }
@@ -306,9 +358,9 @@ class LinesRendererWorker {
           : coords
 
         if (RenderedColourLine.has(connection.color)) {
-          RenderedColourLine.get(connection.color).push(ln)
+          RenderedColourLine.get(connection.color).push(FixCoords(ln))
         } else {
-          RenderedColourLine.set(connection.color, [ln])
+          RenderedColourLine.set(connection.color, [FixCoords(ln)])
         }
       }
     }
@@ -317,10 +369,13 @@ class LinesRendererWorker {
 
     for (const [color, coords] of RenderedColourLine.entries()) {
       rendered.push(
-        multiLineString(coords, {
-          id: color,
-          stroke: color
-        })
+        multiLineString(
+          coords.map((c: Position[]) => FixCoords(c)),
+          {
+            id: color,
+            stroke: color
+          }
+        )
       )
     }
 
@@ -328,18 +383,25 @@ class LinesRendererWorker {
 
     const time_end = performance.now()
 
-    /*console.log(
-      'rendered',
-      Math.round(time_end - time_start) + 'ms',
-      'r_segs_dbg',
-      r_segs_dbg,
-      's_segs_dbg',
-      s_segs_dbg,
-      'scale',
-      spacing,
-      'smoothing',
-      flags_should_smooth
-    )*/
+    if (DEBUG) {
+      console.log(
+        'rendered',
+        segments_rendered,
+        'in',
+        Math.round(time_end - time_start) + 'ms',
+        '(' + (time_end - time_start) / segments_rendered + 'ms/segment)',
+        'r_segs_dbg',
+        r_segs_dbg,
+        's_segs_dbg',
+        s_segs_dbg,
+        'scale',
+        spacing,
+        'smoothing_connection',
+        flags_should_smooth,
+        'smoothing_coords',
+        flags_should_smooth_coords
+      )
+    }
 
     return featureCollection(rendered)
   }
@@ -349,10 +411,16 @@ class LinesRendererWorker {
     postMessage({ type: 'finished_init' })
   }
 
-  message_request_render(line_width: number, zoom: number, viewbox: number[][]) {
-    const spacing = ScaleSpacing(line_width, zoom)
+  message_request_render(
+    line_width: number,
+    request_spacing: number,
+    zoom: number,
+    viewbox: number[][]
+  ) {
+    const spacing = ScaleSpacing(request_spacing, zoom)
     const rendered = this.renderLines(spacing, viewbox)
     postMessage({ type: 'rendered', data: rendered })
+    if (DEBUG) console.log('rendered', rendered)
   }
 }
 
@@ -364,6 +432,7 @@ addEventListener('message', (event: { data: { type: string; data: any } }) => {
   } else if (event.data.type === 'request_render') {
     worker.message_request_render(
       event.data.data.width,
+      event.data.data.spacing,
       event.data.data.zoom,
       event.data.data.viewbox
     )

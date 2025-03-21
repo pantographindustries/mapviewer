@@ -18,7 +18,8 @@ export class ConductorMap {
     zoom_cutoff_platforms: 12,
     zoom_cutoff_platforms_marker: 14.2,
     zoom_cutoff_insignificant_locations: 12,
-    line_width: 2.5,
+    line_width: 3,
+    line_spacing: 2.5,
     style: window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : ('light' as 'dark' | 'light')
@@ -318,6 +319,7 @@ export class ConductorMap {
       type: 'request_render',
       data: {
         width: this.config.line_width,
+        spacing: this.config.line_spacing,
         zoom: this.current.zoom,
         viewbox: this.current.bounds_polygon
       }
