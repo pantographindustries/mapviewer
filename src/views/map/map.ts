@@ -18,8 +18,8 @@ export class ConductorMap {
     zoom_cutoff_platforms: 12,
     zoom_cutoff_platforms_marker: 14.2,
     zoom_cutoff_insignificant_locations: 12,
-    line_width: 3,
-    line_spacing: 2.5,
+    line_width: 1.75,
+    line_spacing: 2,
     style: window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : ('light' as 'dark' | 'light')

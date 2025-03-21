@@ -149,7 +149,8 @@ function ProcessOffsetLines(
   lineString: Feature<LineString>,
   flags_should_smooth: boolean
 ): Position[] {
-  if (flags_should_smooth) {
+  const override = true
+  if (flags_should_smooth || override) {
     return smooth(lineString.geometry.coordinates, { iteration: 3, factor: 0.75 })
   } else {
     return lineString.geometry.coordinates
@@ -352,10 +353,13 @@ class LinesRendererWorker {
               .reverse())
       ]
 
+      const override = true
+
       if (!coords.includes(undefined)) {
-        const ln = flags_should_smooth_coords
-          ? smooth(coords, { iteration: 7, factor: 0.75 })
-          : coords
+        const ln =
+          flags_should_smooth_coords || override
+            ? smooth(coords, { iteration: 2, factor: 0.75 })
+            : coords
 
         if (RenderedColourLine.has(connection.color)) {
           RenderedColourLine.get(connection.color).push(FixCoords(ln))

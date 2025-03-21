@@ -5,7 +5,7 @@ const messages = {
     }
   },
   navigation: {
-    applicationName: 'Transit Network Schematic Rendering'
+    applicationName: 'Transit Network Rendering'
   }
 }
 
