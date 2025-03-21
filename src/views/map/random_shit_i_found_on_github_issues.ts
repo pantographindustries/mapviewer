@@ -1,3 +1,4 @@
+//@ts-nocheck
 /*
 
 WHY THE FUCK DOES THIS WORK
@@ -8,8 +9,8 @@ https://github.com/Turfjs/turf/issues/933#issuecomment-1249056346
 //TODO: ADD TYPES and make rewrite later
 
 function dist2d(coord1, coord2) {
-  let dx = coord1[0] - coord2[0]
-  let dy = coord1[1] - coord2[1]
+  const dx = coord1[0] - coord2[0]
+  const dy = coord1[1] - coord2[1]
   return Math.sqrt(dx * dx + dy * dy)
 }
 function equals(coord1, coord2) {
@@ -23,12 +24,12 @@ function equals(coord1, coord2) {
   return equals
 }
 function offsetCoords(coords, offset) {
-  var path = []
-  var N = coords.length - 1
-  var max = N
-  var mi, mi1, li, li1, ri, ri1, si, si1, Xi1, Yi1
-  var p0, p1, p2
-  var isClosed = equals(coords[0], coords[N])
+  const path = []
+  let N = coords.length - 1
+  let max = N
+  let mi, mi1, li, li1, ri, ri1, si, si1, Xi1, Yi1
+  let p0, p1, p2
+  const isClosed = equals(coords[0], coords[N])
   if (!isClosed) {
     p0 = coords[0]
     p1 = coords[1]
@@ -41,7 +42,7 @@ function offsetCoords(coords, offset) {
     N++
     max--
   }
-  for (var i = 0; i < max; i++) {
+  for (let i = 0; i < max; i++) {
     p0 = coords[i]
     p1 = coords[(i + 1) % N]
     p2 = coords[(i + 2) % N]
