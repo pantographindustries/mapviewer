@@ -16,6 +16,8 @@ import RandomGithubOffsetFunction from './random_shit_i_found_on_github_issues.j
 const DEBUG = false
 const DO_VIEWPORT_CHECK = false
 
+let ENABLE_ANY_SMOOTHING = true
+
 type coordpair = [number, number]
 
 type topojsonExport = {
@@ -150,7 +152,7 @@ function ProcessOffsetLines(
   flags_should_smooth: boolean
 ): Position[] {
   const override = true
-  if (flags_should_smooth || override) {
+  if (ENABLE_ANY_SMOOTHING && (flags_should_smooth || override)) {
     return smooth(lineString.geometry.coordinates, { iteration: 3, factor: 0.75 })
   } else {
     return lineString.geometry.coordinates
@@ -357,7 +359,7 @@ class LinesRendererWorker {
 
       if (!coords.includes(undefined)) {
         const ln =
-          flags_should_smooth_coords || override
+          ENABLE_ANY_SMOOTHING && (flags_should_smooth_coords || override)
             ? smooth(coords, { iteration: 2, factor: 0.75 })
             : coords
 
@@ -411,7 +413,8 @@ class LinesRendererWorker {
   }
 
   message_init(data: any) {
-    this.processTopologies(data)
+    ENABLE_ANY_SMOOTHING = data.should_smooth
+    this.processTopologies(data.data)
     postMessage({ type: 'finished_init' })
   }
 
@@ -432,7 +435,7 @@ const worker = new LinesRendererWorker()
 
 addEventListener('message', (event: { data: { type: string; data: any } }) => {
   if (event.data.type === 'init') {
-    worker.message_init(event.data.data)
+    worker.message_init(event.data)
   } else if (event.data.type === 'request_render') {
     worker.message_request_render(
       event.data.data.width,
