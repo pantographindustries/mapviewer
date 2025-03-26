@@ -105,6 +105,9 @@ export class ConductorMap {
     this.map.on('moveend', async () => {
       await this.#event_move_end()
     })
+    this.map.on('zoom', async () => {
+      await this.#event_zoom()
+    })
     this.map.on('styleimagemissing', async () => {
       await this.#event_style_image_missing()
     })
@@ -160,13 +163,13 @@ export class ConductorMap {
             this.config.line_width
           ]
         }
-      }
-      //'physical_line_waterway_label'
+      },
+      'physical_line_waterway_label'
     )
   }
 
   async #update_move_layers() {
-    //console.log(this.map)
+    console.log(this.map)
     this.map.moveLayer('LinesMap', 'physical_line_waterway_label')
   }
 
@@ -361,11 +364,14 @@ export class ConductorMap {
   async #event_move() {
     this.#calculate_visibility()
     this.#debug_update_tiles()
-    this.#linesrenderer_request_render()
   }
 
   async #event_move_end() {
-    this.#linesrenderer_request_render(true)
+    //this.#linesrenderer_request_render(true)
+  }
+
+  async #event_zoom() {
+    this.#linesrenderer_request_render()
   }
 
   async #event_style_image_missing() {
