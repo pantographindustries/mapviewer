@@ -291,9 +291,13 @@ export class ConductorMap {
       this.stores.ApplicationStore.add_loading_item()
       const res = await fetch('/ProcessedTJLines.json')
       const resJson = await res.json()
+
+      const should_smooth = localStorage.getItem('_FLAG_SHOULD_SMOOTH') == 'false' ? false : true
+
       this.workers.linesrenderer.postMessage({
         type: 'init',
-        data: resJson
+        data: resJson,
+        should_smooth
       })
     } catch (error) {
       console.error(error)
