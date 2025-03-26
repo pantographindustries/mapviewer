@@ -293,11 +293,13 @@ export class ConductorMap {
       const resJson = await res.json()
 
       const should_smooth = localStorage.getItem('_FLAG_SHOULD_SMOOTH') == 'false' ? false : true
+      const should_debug = localStorage.getItem('_FLAG_SHOULD_DEBUG') == 'true' ? true : false
 
       this.workers.linesrenderer.postMessage({
         type: 'init',
         data: resJson,
-        should_smooth
+        should_smooth,
+        should_debug
       })
     } catch (error) {
       console.error(error)

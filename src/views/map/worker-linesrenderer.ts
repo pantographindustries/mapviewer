@@ -13,7 +13,7 @@ import { simplify } from '@turf/simplify'
 
 import RandomGithubOffsetFunction from './random_shit_i_found_on_github_issues.js'
 
-const DEBUG = false
+let DEBUG = false
 const DO_VIEWPORT_CHECK = false
 
 let ENABLE_ANY_SMOOTHING = true
@@ -414,6 +414,7 @@ class LinesRendererWorker {
 
   message_init(data: any) {
     ENABLE_ANY_SMOOTHING = data.should_smooth
+    DEBUG = data.should_debug
     this.processTopologies(data.data)
     postMessage({ type: 'finished_init' })
   }
