@@ -3,7 +3,30 @@ import DSTStandard from '@/components/DS/Text/DST-Standard.vue';
 import DSIIcon from '@/components/DS/Icons/DSI-Icon.vue';
 import { useI18n } from 'vue-i18n'
 
+import { onUnmounted } from 'vue'
+
 const { t } = useI18n()
+
+
+onUnmounted(() => {
+  removeHtmlEmbeddedLoadScreen()
+
+});
+
+function removeHtmlEmbeddedLoadScreen() {
+  const timeout = performance.now() - window.pageInitialLoad < 1000 ? 1000 : 1000;
+
+  setTimeout(() => {
+    const loader = document.querySelector('#bootsplash.bootsplash')
+    if (!loader) return
+    loader.classList.add('load-state--loaded')
+    setTimeout(() => {
+      loader.outerHTML = ''
+    }, 1000)
+  }, timeout)
+}
+
+
 </script>
 
 <template>

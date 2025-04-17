@@ -1,23 +1,90 @@
 <!doctype html>
-<html lang="en">
+<html lang="">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mapviewer</title>
-    <style>
-      html {
-        background: #ffffff;
-      }
-      @media (prefers-color-scheme: dark) {
-        html {
-          background: #1e1e1e;
-        }
-      }
-    </style>
   </head>
   <body>
     <div id="app"></div>
+
+    <!-- Loader -->
+
+    <main class="bootsplash load-state--loading" id="bootsplash">
+      <!-- prettier-ignore -->
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="line-bootsplash ">
+        <g clip-path="url(#clip_rect)"> <rect width="36" height="36" fill="white" /> <path d="M-13 -6.81366V25.5C-13 32.4036 -7.40356 38 -0.5 38C6.40356 38 12 32.4036 12 25.5V23V15V9.34992C12 6.04714 10.7429 2.86819 8.48398 0.458687L-2.30049 -11.0448C-3.47 -12.2922 -5.1037 -13 -6.81366 -13C-10.2303 -13 -13 -10.2303 -13 -6.81366Z" stroke-width="4" id="line-metro" class="line line-animate" /> <g clip-path="url(#clip-lines-top)"> <path d="M44.5 45.9138V-0.5C44.5 -7.6797 38.6797 -13.5 31.5 -13.5C24.3203 -13.5 18.5 -7.6797 18.5 -0.5V22V28.0175C18.5 31.1756 19.6072 34.2338 21.629 36.6599L32.8542 50.1302C34.1056 51.6318 35.9592 52.5 37.9139 52.5C41.5513 52.5 44.5 49.5513 44.5 45.9138Z" stroke-width="5" id="line-t9-top" class="line line-animate" /> <path d="M39.5 -0.5V45.9138C39.5 46.7899 38.7899 47.5 37.9139 47.5C37.4431 47.5 36.9967 47.2909 36.6953 46.9293L25.4701 33.459C24.1971 31.9314 23.5 30.0059 23.5 28.0175V22V-0.5C23.5 -4.91828 27.0817 -8.5 31.5 -8.5C35.9183 -8.5 39.5 -4.91828 39.5 -0.5Z" stroke-width="5" id="line-t1-top" class="line line-animate" /> </g> <g clip-path="url(#clip-lines-bottom)"> <path d="M44.5 45.9138V-0.5C44.5 -7.6797 38.6797 -13.5 31.5 -13.5C24.3203 -13.5 18.5 -7.6797 18.5 -0.5V22V28.0175C18.5 31.1756 19.6072 34.2338 21.629 36.6599L32.8542 50.1302C34.1056 51.6318 35.9592 52.5 37.9139 52.5C41.5513 52.5 44.5 49.5513 44.5 45.9138Z" stroke-width="5" id="line-t9-bottom" class="line line-animate" /> <path d="M39.5 -0.5V45.9138C39.5 46.7899 38.7899 47.5 37.9139 47.5C37.4431 47.5 36.9967 47.2909 36.6953 46.9293L25.4701 33.459C24.1971 31.9314 23.5 30.0059 23.5 28.0175V22V-0.5C23.5 -4.91828 27.0817 -8.5 31.5 -8.5C35.9183 -8.5 39.5 -4.91828 39.5 -0.5Z" stroke-width="5" id="line-t1-bottom" class="line line-animate" /> </g> <path d="M21 -0.5C21 -6.29899 25.701 -11 31.5 -11V-11C37.299 -11 42 -6.29899 42 -0.5V45.9138C42 48.1706 40.1706 50 37.9139 50V50C36.7012 50 35.5511 49.4614 34.7748 48.5297L23.5496 35.0595C21.9022 33.0826 21 30.5908 21 28.0175V22V-0.5Z" stroke="white" stroke-width="2" id="line-seperator" /> <path d="M5.3125 0L7.02491 1.82657C8.93629 3.86538 10 6.55526 10 9.34992V13H14V9.34992C14 5.94128 12.8395 2.64695 10.7294 0H16V13H20V0H22V13H26V0H36V36H30.8419L27.3907 31.8586C26.4921 30.7803 26 29.4211 26 28.0175V23H22V28.0175C22 30.3568 22.8202 32.6221 24.3178 34.4193L25.635 36H23.0316L22.7813 35.6997C20.9842 33.5431 20 30.8247 20 28.0175V23H16V28.0175C16 30.8351 16.7436 33.5856 18.1335 36H0V0H5.3125Z" fill="white" /> <rect x="6" y="14" width="24" height="8" rx="4" fill="white" stroke-width="2" id="station" /> </g> <defs> <clipPath id="clip_rect"> <rect width="36" height="36" fill="white" /> </clipPath> <clipPath id="clip-lines-top"> <rect x="0" y="0" width="36" height="13" fill="white" /> </clipPath> <clipPath id="clip-lines-bottom"> <rect x="0" y="23" width="36" height="13" fill="white" /> </clipPath> </defs> <style> #station { --outline-color: #161618; --outline-pulsar-color: #E0E0E0; transition: stroke 0.3s; } #line-metro { --stroke-dasharray: 34; --stroke-start: 18; --stroke-fill: 0; --stroke-pulsar-start: 140; --stroke-pulsar-end: 90; --stroke-color: #00959A; } #line-t9-top { --stroke-dasharray: 17; --stroke-start: 1.2; --stroke-fill: 14.5; --stroke-pulsar-start: 80; --stroke-pulsar-end: 140; --stroke-color: #D21F2F; } #line-t1-top { --stroke-dasharray: 17; --stroke-start: 30.25; --stroke-fill: 17.27; --stroke-pulsar-start: 140; --stroke-pulsar-end: 80; --stroke-color: #F2994A; } #line-t9-bottom { --stroke-dasharray: 17; --stroke-start: 8.3; --stroke-fill: -6.7; --stroke-pulsar-start: 120; --stroke-pulsar-end: 60; --stroke-color: #D21F2F; } #line-t1-bottom { --stroke-dasharray: 17; --stroke-start: 23.2; --stroke-fill: 39.6; --stroke-pulsar-start: 90; --stroke-pulsar-end: 170; --stroke-color: #F2994A; } .line.line-animate { stroke-dasharray: var(--stroke-dasharray) var(--stroke-dasharray); stroke-dashoffset: var(--stroke-start); } .load-state--loading .line.line-animate { stroke-dasharray: 2 100; stroke: #AAAAAA; filter: blur(5px); animation: pulsar 2s linear infinite; } .load-state--loading #station { stroke: var(--outline-pulsar-color); } .load-state--loaded .line.line-animate { stroke-dasharray: var(--stroke-dasharray) var(--stroke-dasharray); stroke-dashoffset: var(--stroke-fill); stroke: var(--stroke-color); filter: blur(0px); animation: loaded 0.3s cubic-bezier(0.7, 0.1, 0.4, 0.9); } .load-state--loaded #station { stroke: var(--outline-color); } @keyframes pulsar { 0% { stroke-dashoffset: var(--stroke-pulsar-start); } 50%, 100% { stroke-dashoffset: var(--stroke-pulsar-end); } } @keyframes loaded { 0% { stroke-dashoffset: var(--stroke-start); } 100% { stroke-dashoffset: var(--stroke-fill); } } </style> </svg>
+    </main>
+
+    <style>
+      .bootsplash {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        opacity: 1;
+        background-color: #f7f7f7;
+        --curve: cubic-bezier(0.75, -0.01, 0, 0.67);
+      }
+
+      .bootsplash svg {
+        transform: scale(1.5);
+        filter: blur(0);
+        transition: filter 0.3s var(--curve);
+        border-radius: 5px;
+      }
+
+      .bootsplash.load-state--loaded {
+        animation: bootsplash-out 1s var(--curve) forwards;
+        display: none;
+      }
+
+      .bootsplash.load-state--loaded svg {
+        animation: bootsplash-out-icon 1s var(--curve) forwards;
+      }
+
+      @keyframes bootsplash-out {
+        0%,
+        50% {
+          opacity: 1;
+          filter: blur(0);
+          display: flex;
+        }
+        80%,
+        100% {
+          opacity: 0;
+          filter: blur(5px);
+          display: flex;
+        }
+      }
+
+      @keyframes bootsplash-out-icon {
+        0% {
+          transform: scale(1.5);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        80%,
+        100% {
+          transform: scale(4);
+          opacity: 0;
+        }
+      }
+    </style>
+
+    <script>
+      window.pageInitialLoad = performance.now()
+    </script>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
