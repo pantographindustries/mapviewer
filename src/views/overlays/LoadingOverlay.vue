@@ -15,7 +15,8 @@ const { t } = useI18n();
 
 var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 if (isSafari) {
-  const loader = document.querySelector('#bootsplash.bootsplash')
+  const loader = document.querySelector('#bootsplash.bootsplash');
+  if (!loader) return
   loader.outerHTML = ''
 }
 
