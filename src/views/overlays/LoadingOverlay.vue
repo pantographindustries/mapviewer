@@ -11,7 +11,13 @@ import { useI18n } from 'vue-i18n'
 
 import { onUnmounted } from 'vue'
 
-const { t } = useI18n()
+const { t } = useI18n();
+
+var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+if (isSafari) {
+  const loader = document.querySelector('#bootsplash.bootsplash')
+  loader.outerHTML = ''
+}
 
 
 onUnmounted(() => {
