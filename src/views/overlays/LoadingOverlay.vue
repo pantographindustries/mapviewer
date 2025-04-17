@@ -33,7 +33,7 @@ function removeHtmlEmbeddedLoadScreen() {
   setTimeout(() => {
     const loader = document.querySelector('#bootsplash.bootsplash')
     if (!loader) return
-    loader.classList.add('load-state--loaded')
+    loader.classList.add('load-state--loaded');
     setTimeout(() => {
       loader.outerHTML = ''
     }, 1000)
