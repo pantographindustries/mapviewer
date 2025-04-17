@@ -83,6 +83,14 @@
 
     <script>
       window.pageInitialLoad = performance.now()
+
+      var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+      if (isSafari) {
+        const loader = document.querySelector('#bootsplash.bootsplash')
+        if (loader) {
+          loader.outerHTML = ''
+        }
+      }
     </script>
 
     <script type="module" src="/src/main.ts"></script>
