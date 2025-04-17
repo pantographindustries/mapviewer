@@ -1,4 +1,10 @@
 <script setup lang="ts">
+declare global {
+  interface Window {
+    pageInitialLoad: DOMHighResTimeStamp
+  }
+}
+
 import DSTStandard from '@/components/DS/Text/DST-Standard.vue';
 import DSIIcon from '@/components/DS/Icons/DSI-Icon.vue';
 import { useI18n } from 'vue-i18n'
