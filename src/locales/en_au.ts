@@ -1,11 +1,11 @@
 const messages = {
   overlays: {
     loading: {
-      application_loading: 'Mapviewer is loading...'
+      application_loading: 'MapViewer is loading...'
     }
   },
   navigation: {
-    applicationName: 'Mapviewer'
+    applicationName: 'MapViewer'
   }
 }
 
